@@ -1,0 +1,4 @@
+table User {
+    id String
+    name String
+}
