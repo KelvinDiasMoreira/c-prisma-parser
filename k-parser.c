@@ -1,21 +1,32 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define SIZE_TOKEN_ARR 20
 
 typedef struct Kpos {
-    int init;
     int line;
+    char *name;
+    int size;
 } Kpos_t;
 
 typedef struct Kparser {
     Kpos_t arr[SIZE_TOKEN_ARR];
 } Kparser_t;
 
+void free_struct(Kparser_t *lex){
+    for(size_t i = 0; i < SIZE_TOKEN_ARR; i++){
+        if(lex->arr[i].size != -1){
+            free(lex->arr[i].name);
+        }
+    }
+}
+
 void fill_token_arr(Kparser_t *lex){
     for(int i = 0; i < SIZE_TOKEN_ARR; i++){
-        lex->arr[i].init = -1;
         lex->arr[i].line = -1;
+        lex->arr[i].name = NULL;
+        lex->arr[i].size = -1;
     }
 }
 
@@ -23,8 +34,7 @@ void print_token_arr(Kparser_t lex){
     printf("[");
     for(int i = 0; i < SIZE_TOKEN_ARR; i++){
         printf("{");
-        printf("init: %d ", lex.arr[i].init);
-        printf("line: %d", lex.arr[i].line);
+        printf("line: %d, name: %s, size: %d", lex.arr[i].line, lex.arr[i].name, lex.arr[i].size);
         printf("}");
         if(i == SIZE_TOKEN_ARR - 1) continue;
         printf(", ");
@@ -32,31 +42,49 @@ void print_token_arr(Kparser_t lex){
     printf("]");
 }
 
-void find_and_put(char *buffer, Kparser_t *lex, int *line){
-    char table_name[50];
+int find_index_table(char *buffer){
     char *search_str = "table";
     char *find = strstr(buffer, search_str);
     if(find == NULL){
-        printf("(DEBUG): Not found table in buffer\n");
-        return;
+        return -1;
     }
-    int start = find - buffer;
-    lex->arr[*line].init = start;
+    return find - buffer;
+}
+
+int find_and_put(char *buffer, Kparser_t *lex, int *line){
+    int start = find_index_table(buffer);
+    if(start == -1){
+        // printf("(DEBUG): Not found table in buffer\n");
+        return 0;
+    }
+    char *table_name = NULL;
     lex->arr[*line].line = *line;
     while(*buffer != ' '){
         buffer++;
     }
-    int j = 0;
-    for(int i = start + 1 ; i < sizeof(table_name); i++){
+    // remove the space
+    buffer++;
+    int s = 0;
+    for (size_t i = 0; i < 50; i++){
         if(buffer[i] == ' '){
             break;
         }
-        if(buffer[i] != ' '){
-            table_name[j] = buffer[i];
-            j++;
-        }
+        s++;
     }
-    printf("%s\n", table_name);
+    table_name = malloc(sizeof(char) * s);
+    if(table_name == NULL){
+        printf("(ERROR): Failed to allocate memory");
+        return 1;
+    }
+    for (int i = 0; i < s; i++){
+        if(buffer[i] == ' '){
+            break;
+        }
+        table_name[i] = buffer[i];
+    }
+    table_name[s] = '\0';
+    lex->arr[*line].size = s;
+    lex->arr[*line].name = table_name;
     *line += 1;
 }
 
@@ -78,12 +106,14 @@ int main()
     }
     int i = 0;
     while(fgets(buffer, sizeof(buffer), fptr) != NULL){
-              find_and_put(buffer, &lexical, &i);
+        if(find_and_put(buffer, &lexical, &i) == 1){
+            free_struct(&lexical);
+            fclose(fptr);
+            return 1;
+        }
     }
-    // if(fgets(buffer, sizeof(buffer), fptr) != NULL){
-    //     find_and_put(buffer, &lexical);
-    // }
     fclose(fptr);
-    // print_token_arr(lexical);
+    print_token_arr(lexical);
+    free_struct(&lexical);
     return 0;
 }
