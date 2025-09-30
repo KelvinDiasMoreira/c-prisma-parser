@@ -54,7 +54,12 @@ int find_index_table(char *buffer){
 int find_and_put(char *buffer, Kparser_t *lex, int *line){
     int start = find_index_table(buffer);
     if(start == -1){
-        // printf("(DEBUG): Not found table in buffer\n");
+        int i = 0;
+        while(buffer[i] != '\0'){
+            printf("%c\n", buffer[i]);
+            // if(buffer[i] == ' ') 
+            i++;
+        }
         return 0;
     }
     char *table_name = NULL;
@@ -91,7 +96,7 @@ int find_and_put(char *buffer, Kparser_t *lex, int *line){
 int main()
 {
     FILE *fptr;
-    Kparser_t lexical;
+    Kparser_t lexical = {0};
     char buffer[100];
     fill_token_arr(&lexical);
     /*
