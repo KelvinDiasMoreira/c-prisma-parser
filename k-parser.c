@@ -226,6 +226,7 @@ int main()
         }
     }
     fclose(fptr);
+    // to debug only
     // print_token_arr(lexical);
     free_struct(&lexical);
     return 0;
