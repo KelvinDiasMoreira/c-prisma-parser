@@ -20,10 +20,6 @@ int main()
     int in_word = 0;
     while ((c = getc(fptr)) != EOF)
     {
-        if ((char)c == '\n')
-        {
-            l++;
-        }
         if (!isspace((char)c))
         {
             if (!in_word)
@@ -39,6 +35,10 @@ int main()
             in_word = 0;
             // Debug
             printf(" ----- init: %d, end: %d, line: %d\n", ip, i, l);
+        }
+        if ((char)c == '\n')
+        {
+            l++;
         }
         i++;
     }
