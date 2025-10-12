@@ -1,4 +1,9 @@
 table User {
-    id String
+    id String Teste
+    name String
+}
+
+table Book {
+    id String uuid default
     name String
 }
