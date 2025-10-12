@@ -31,43 +31,43 @@ int main()
     }
     char buffer[BUFFER_SIZE];
     empty_buff(buffer);
-    int c;
+    int current_char;
     int i = 0;
-    int l = 0;
-    int ip = 0;
+    int line = 0;
+    int initial_position = 0;
     int in_word = 0;
-    int bs = 0;
+    int buffer_size = 0;
     int is_table = 0;
     int is_column = 0;
     int is_param = 0;
-    while ((c = getc(fptr)) != EOF)
+    while ((current_char = getc(fptr)) != EOF)
     {
-        if (!isspace((char)c))
+        if (!isspace((char)current_char))
         {
             if (!in_word)
             {
-                ip = i;
+                initial_position = i;
             }
             in_word = 1;
-            if (bs >= BUFFER_SIZE)
+            if (buffer_size >= BUFFER_SIZE)
             {
-                printf("buffer exceed");
+                printf("\n[ERROR] Buffer exceed\n");
                 return 1;
             }
-            buffer[bs] = (char)c;
-            bs++;
+            buffer[buffer_size] = (char)current_char;
+            buffer_size++;
             // Debug
-            printf("%c", (char)c);
+            printf("%c", (char)current_char);
         }
         else if (in_word)
         {
-            bs = 0;
+            buffer_size = 0;
             in_word = 0;
             // Debug
-            printf(" ----- init: %d, end: %d, line: %d\n", ip, i, l);
+            printf(" ----- init: %d, end: %d, line: %d\n", initial_position, i, line);
             // Debug
-            printf("total: %d, buffer: %s\n", i - ip, buffer);
-            int length = i - ip;
+            printf("total: %d, buffer: %s\n", i - initial_position, buffer);
+            int length = i - initial_position;
             char cmp[length];
             for (int i = 0; i < length; i++)
             {
@@ -101,9 +101,9 @@ int main()
                 is_table = 1;
             }
         }
-        if ((char)c == '\n')
+        if ((char)current_char == '\n')
         {
-            l++;
+            line++;
             is_param = 0;
         }
         i++;
