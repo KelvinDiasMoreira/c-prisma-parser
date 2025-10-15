@@ -3,6 +3,26 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+typedef enum
+{
+    KEYWORD_TABLE,
+    OPENING_BRACE,
+    CLOSING_BRACE,
+} KTOKENS;
+
+typedef struct TOKEN
+{
+    int start;
+    int line;
+    KTOKENS type;
+} TOKEN_T;
+
+typedef struct TOKENS
+{
+    TOKEN_T *tokens;
+    int tokens_count;
+} TOKENS_T;
+
 #define BUFFER_SIZE 50
 
 void empty_buff(char buffer[BUFFER_SIZE])
@@ -14,9 +34,23 @@ void empty_buff(char buffer[BUFFER_SIZE])
     buffer[BUFFER_SIZE] = '\0';
 }
 
+void init_tokens(TOKENS_T *ptr_token, size_t initial_capacity)
+{
+    ptr_token->tokens = (TOKEN_T *)malloc(sizeof(TOKEN_T) * initial_capacity);
+    ptr_token->tokens_count = 0;
+}
+
+void free_tokens(TOKENS_T *ptr_token)
+{
+    free(ptr_token->tokens);
+}
+
 int main()
 {
     FILE *fptr;
+    TOKENS_T tokens;
+    init_tokens(&tokens, 20);
+
     fptr = fopen("schema.prisma", "r");
     if (fptr == NULL)
     {
@@ -56,7 +90,11 @@ int main()
             buffer_size = 0;
             in_word = 0;
             int total_length = i - initial_position;
-            printf("%d\n", total_length);
+            for (int i = 0; i < total_length; i++)
+            {
+                printf("%c", buffer[i]);
+            }
+            printf("\n");
         }
         if ((char)current_char == '\n')
         {
@@ -64,7 +102,7 @@ int main()
         }
         i++;
     }
-    printf("%d\n", line);
     fclose(fptr);
+    free_tokens(&tokens);
     return 0;
 }
