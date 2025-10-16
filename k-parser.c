@@ -168,6 +168,24 @@ int main()
         }
         i++;
     }
+    if (in_word)
+    {
+        buffer_size = 0;
+        in_word = 0;
+        int total_length = i - initial_position;
+        char *cmp_buff = malloc(sizeof(char) * total_length);
+        if (cmp_buff == NULL)
+        {
+            printf("Failed to allocate memory\n");
+            exit(1);
+        }
+        for (int i = 0; i < total_length; i++)
+        {
+            cmp_buff[i] = buffer[i];
+        }
+        cmp_buff[total_length] = '\0';
+        tokenize_word(&tokens, cmp_buff, initial_position, line);
+    }
     fclose(fptr);
     // debug
     for (int i = 0; i < tokens.tokens_count; i++)
