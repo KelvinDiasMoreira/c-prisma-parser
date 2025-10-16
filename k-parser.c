@@ -6,6 +6,7 @@
 typedef enum
 {
     KEYWORD_TABLE,
+    IDENTIFIER,
     OPENING_BRACE,
     CLOSING_BRACE,
 } KTOKENS;
@@ -33,6 +34,8 @@ const char *token_to_string(KTOKENS token)
     {
     case KEYWORD_TABLE:
         return "KEYWORD_TABLE";
+    case IDENTIFIER:
+        return "IDENTIFIER";
     case OPENING_BRACE:
         return "OPENING_BRACE";
     case CLOSING_BRACE:
@@ -86,24 +89,30 @@ void free_tokens(TOKENS_T *ptr_token)
 
 void tokenize_word(TOKENS_T *tokens, char *word, int initial_position, int line)
 {
+    // need free only when the token not have a value, like KEYWORDS,OPENING_BRACE etc..
     if (strcmp("table", word) == 0)
     {
         TOKEN_T token = {.line = line, .start = initial_position, .type = KEYWORD_TABLE};
         add_token(tokens, token);
-        // free(word);
+        free(word);
     }
-    if (strcmp("{", word) == 0)
+    else if (strcmp("{", word) == 0)
     {
         TOKEN_T token = {.line = line, .start = initial_position, .type = OPENING_BRACE};
         add_token(tokens, token);
+        free(word);
     }
-    if (strcmp("}", word) == 0)
+    else if (strcmp("}", word) == 0)
     {
         TOKEN_T token = {.line = line, .start = initial_position, .type = CLOSING_BRACE};
         add_token(tokens, token);
+        free(word);
     }
-    // need free only when the token not have a value, like KEYWORDS,OPENING_BRACE etc..
-    free(word);
+    else
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = IDENTIFIER, .value = word};
+        add_token(tokens, token);
+    }
 }
 
 int main()
