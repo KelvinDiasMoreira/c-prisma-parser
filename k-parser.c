@@ -3,12 +3,50 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+typedef enum
+{
+    KEYWORD_TABLE,
+    IDENTIFIER,
+    IDENTIFIER_ARG,
+    OPENING_BRACE,
+    CLOSING_BRACE,
+} KTOKENS;
+
+typedef struct TOKEN
+{
+    char *value;
+    int start;
+    int line;
+    KTOKENS type;
+} TOKEN_T;
+
+typedef struct TOKENS
+{
+    TOKEN_T *tokens;
+    size_t tokens_count;
+    size_t capacity;
+} TOKENS_T;
+
 #define BUFFER_SIZE 50
 
-// struct Table
-// {
-//     char *table_name;
-// } Table_t;
+const char *token_to_string(KTOKENS token)
+{
+    switch (token)
+    {
+    case KEYWORD_TABLE:
+        return "KEYWORD_TABLE";
+    case IDENTIFIER:
+        return "IDENTIFIER";
+    case IDENTIFIER_ARG:
+        return "IDENTIFIER_ARG";
+    case OPENING_BRACE:
+        return "OPENING_BRACE";
+    case CLOSING_BRACE:
+        return "CLOSING_BRACE";
+    default:
+        "UNKNOWN";
+    }
+}
 
 void empty_buff(char buffer[BUFFER_SIZE])
 {
@@ -19,9 +57,78 @@ void empty_buff(char buffer[BUFFER_SIZE])
     buffer[BUFFER_SIZE] = '\0';
 }
 
+void init_tokens(TOKENS_T *ptr_token, size_t initial_capacity)
+{
+
+    ptr_token->tokens = (TOKEN_T *)malloc(sizeof(TOKEN_T) * initial_capacity);
+    if (ptr_token->tokens == NULL)
+    {
+        printf("Failed to allocate memory");
+        exit(1);
+    }
+    ptr_token->tokens_count = 0;
+    ptr_token->capacity = initial_capacity;
+}
+
+void add_token(TOKENS_T *ptr_token, TOKEN_T token)
+{
+    if (ptr_token->capacity == ptr_token->tokens_count)
+    {
+        // TODO: realloc memory
+        printf("\ncannot added token, limit reached\n");
+        exit(1);
+    }
+    else
+    {
+        ptr_token->tokens[ptr_token->tokens_count] = token;
+        ptr_token->tokens_count++;
+    }
+}
+
+void free_tokens(TOKENS_T *ptr_token)
+{
+    free(ptr_token->tokens);
+}
+
+void tokenize_word(TOKENS_T *tokens, char *word, int initial_position, int line)
+{
+    // need free only when the token not have a value, like KEYWORDS,OPENING_BRACE etc..
+    if (strcmp("table", word) == 0)
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = KEYWORD_TABLE};
+        add_token(tokens, token);
+        free(word);
+    }
+    else if (strcmp("{", word) == 0)
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = OPENING_BRACE};
+        add_token(tokens, token);
+        free(word);
+    }
+    else if (strcmp("}", word) == 0)
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = CLOSING_BRACE};
+        add_token(tokens, token);
+        free(word);
+    }
+    else if (word[0] == '@')
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = IDENTIFIER_ARG, .value = word};
+        add_token(tokens, token);
+    }
+    else
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = IDENTIFIER, .value = word};
+        add_token(tokens, token);
+    }
+}
+
 int main()
 {
     FILE *fptr;
+    TOKENS_T tokens;
+    init_tokens(&tokens, 20);
+
     fptr = fopen("schema.prisma", "r");
     if (fptr == NULL)
     {
@@ -37,9 +144,6 @@ int main()
     int initial_position = 0;
     int in_word = 0;
     int buffer_size = 0;
-    int is_table = 0;
-    int is_column = 0;
-    int is_param = 0;
     while ((current_char = getc(fptr)) != EOF)
     {
         if (!isspace((char)current_char))
@@ -56,58 +160,55 @@ int main()
             }
             buffer[buffer_size] = (char)current_char;
             buffer_size++;
-            // Debug
-            printf("%c", (char)current_char);
         }
         else if (in_word)
         {
             buffer_size = 0;
             in_word = 0;
-            // Debug
-            printf(" ----- init: %d, end: %d, line: %d\n", initial_position, i, line);
-            // Debug
-            printf("total: %d, buffer: %s\n", i - initial_position, buffer);
-            int length = i - initial_position;
-            char cmp[length];
-            for (int i = 0; i < length; i++)
+            int total_length = i - initial_position;
+            char *cmp_buff = malloc(sizeof(char) * total_length);
+            if (cmp_buff == NULL)
             {
-                cmp[i] = buffer[i];
+                printf("Failed to allocate memory\n");
+                exit(1);
             }
-            cmp[length] = '\0';
-            if (strcmp("}", cmp) == 0)
+            for (int i = 0; i < total_length; i++)
             {
-                is_column = 0;
+                cmp_buff[i] = buffer[i];
             }
-            if (is_param)
-            {
-                // debug: column param
-                printf("column param: %s\n", cmp);
-            }
-            else if (is_column && strcmp("{", cmp) == 1)
-            {
-                // debug: column name
-                printf("column name: %s\n", cmp);
-                is_param = 1;
-            }
-            else if (is_table)
-            {
-                // debug: table name
-                printf("table name: %s\n", cmp);
-                is_table = 0;
-                is_column = 1;
-            }
-            else if (strcmp("table", cmp) == 0 && !is_table)
-            {
-                is_table = 1;
-            }
+            cmp_buff[total_length] = '\0';
+            tokenize_word(&tokens, cmp_buff, initial_position, line);
         }
         if ((char)current_char == '\n')
         {
             line++;
-            is_param = 0;
         }
         i++;
     }
+    if (in_word)
+    {
+        buffer_size = 0;
+        in_word = 0;
+        int total_length = i - initial_position;
+        char *cmp_buff = malloc(sizeof(char) * total_length);
+        if (cmp_buff == NULL)
+        {
+            printf("Failed to allocate memory\n");
+            exit(1);
+        }
+        for (int i = 0; i < total_length; i++)
+        {
+            cmp_buff[i] = buffer[i];
+        }
+        cmp_buff[total_length] = '\0';
+        tokenize_word(&tokens, cmp_buff, initial_position, line);
+    }
     fclose(fptr);
+    // debug
+    for (int i = 0; i < tokens.tokens_count; i++)
+    {
+        printf("value: %s, start: %d, line: %d, type: %s\n", tokens.tokens[i].value, tokens.tokens[i].start, tokens.tokens[i].line, token_to_string(tokens.tokens[i].type));
+    }
+    free_tokens(&tokens);
     return 0;
 }

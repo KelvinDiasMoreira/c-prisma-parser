@@ -1,4 +1,4 @@
 table User {
-    id String Teste
+    id String @id @default(uuid())
     name String
 }
