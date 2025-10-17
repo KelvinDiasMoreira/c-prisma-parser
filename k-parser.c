@@ -7,6 +7,7 @@ typedef enum
 {
     KEYWORD_TABLE,
     IDENTIFIER,
+    IDENTIFIER_ARG,
     OPENING_BRACE,
     CLOSING_BRACE,
 } KTOKENS;
@@ -36,6 +37,8 @@ const char *token_to_string(KTOKENS token)
         return "KEYWORD_TABLE";
     case IDENTIFIER:
         return "IDENTIFIER";
+    case IDENTIFIER_ARG:
+        return "IDENTIFIER_ARG";
     case OPENING_BRACE:
         return "OPENING_BRACE";
     case CLOSING_BRACE:
@@ -107,6 +110,11 @@ void tokenize_word(TOKENS_T *tokens, char *word, int initial_position, int line)
         TOKEN_T token = {.line = line, .start = initial_position, .type = CLOSING_BRACE};
         add_token(tokens, token);
         free(word);
+    }
+    else if (word[0] == '@')
+    {
+        TOKEN_T token = {.line = line, .start = initial_position, .type = IDENTIFIER_ARG, .value = word};
+        add_token(tokens, token);
     }
     else
     {
