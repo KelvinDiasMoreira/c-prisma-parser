@@ -57,6 +57,7 @@ void add_token(TOKENS_T *tokens, TOKEN_T token)
     {
         // TODO: realloc memory
         printf("\ncannot added token, limit reached\n");
+        free_tokens(tokens);
         exit(1);
     }
     else
