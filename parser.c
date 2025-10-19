@@ -15,31 +15,39 @@ void empty_buff(char buffer[BUFFER_SIZE])
 
 void tokenize_word(TOKENS_T *tokens, char *word, int initial_position, int line)
 {
-    // need free only when the token not have a value, like KEYWORDS,OPENING_BRACE etc..
-    TOKEN_T token = {.line = line, .start = initial_position, .value = word};
+    /*
+        need free only when the token not have a value,
+        like KEYWORDS,OPENING_BRACE etc..
+    */
+    TOKEN_T token = {.line = line, .start = initial_position};
     if (strcmp("table", word) == 0)
     {
         token.type = KEYWORD_TABLE;
         add_token(tokens, token);
+        free(word);
     }
     else if (strcmp("{", word) == 0)
     {
         token.type = OPENING_BRACE;
         add_token(tokens, token);
+        free(word);
     }
     else if (strcmp("}", word) == 0)
     {
         token.type = CLOSING_BRACE;
         add_token(tokens, token);
+        free(word);
     }
     else if (word[0] == '@')
     {
         token.type = IDENTIFIER_ARG;
+        token.value = word;
         add_token(tokens, token);
     }
     else
     {
         token.type = IDENTIFIER;
+        token.value = word;
         int lt = last_token_type(tokens);
         if (lt == KEYWORD_TABLE)
         {
