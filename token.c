@@ -6,6 +6,8 @@ const char *token_to_string(KTOKENS token)
     {
     case KEYWORD_TABLE:
         return "KEYWORD_TABLE";
+    case TABLE_NAME:
+        return "TABLE_NAME";
     case IDENTIFIER:
         return "IDENTIFIER";
     case IDENTIFIER_ARG:
@@ -19,29 +21,39 @@ const char *token_to_string(KTOKENS token)
     }
 }
 
-char *last_token(const TOKENS_T *ptr_token)
+KTOKENS last_token_type(const TOKENS_T *tokens)
 {
-    if(ptr_token->tokens_count > 1) {
-        return ptr_token->tokens[ptr_token->tokens_count - 1].value;
+    if (tokens->tokens_count > 1)
+    {
+        return tokens->tokens[tokens->tokens_count - 1].type;
+    }
+    return KEYWORD_TABLE;
+}
+
+char *last_token(const TOKENS_T *tokens)
+{
+    if (tokens->tokens_count > 1)
+    {
+        return tokens->tokens[tokens->tokens_count - 1].value;
     }
     return NULL;
 }
 
-void init_tokens(TOKENS_T *ptr_token, size_t initial_capacity)
+void init_tokens(TOKENS_T *tokens, size_t initial_capacity)
 {
-    ptr_token->tokens = (TOKEN_T *)malloc(sizeof(TOKEN_T) * initial_capacity);
-    if (ptr_token->tokens == NULL)
+    tokens->tokens = (TOKEN_T *)malloc(sizeof(TOKEN_T) * initial_capacity);
+    if (tokens->tokens == NULL)
     {
         printf("Failed to allocate memory");
         exit(1);
     }
-    ptr_token->tokens_count = 0;
-    ptr_token->capacity = initial_capacity;
+    tokens->tokens_count = 0;
+    tokens->capacity = initial_capacity;
 }
 
-void add_token(TOKENS_T *ptr_token, TOKEN_T token)
+void add_token(TOKENS_T *tokens, TOKEN_T token)
 {
-    if (ptr_token->capacity == ptr_token->tokens_count)
+    if (tokens->capacity == tokens->tokens_count)
     {
         // TODO: realloc memory
         printf("\ncannot added token, limit reached\n");
@@ -49,12 +61,12 @@ void add_token(TOKENS_T *ptr_token, TOKEN_T token)
     }
     else
     {
-        ptr_token->tokens[ptr_token->tokens_count] = token;
-        ptr_token->tokens_count++;
+        tokens->tokens[tokens->tokens_count] = token;
+        tokens->tokens_count++;
     }
 }
 
-void free_tokens(TOKENS_T *ptr_token)
+void free_tokens(TOKENS_T *tokens)
 {
-    free(ptr_token->tokens);
+    free(tokens->tokens);
 }

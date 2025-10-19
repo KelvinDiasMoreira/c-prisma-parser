@@ -40,6 +40,11 @@ void tokenize_word(TOKENS_T *tokens, char *word, int initial_position, int line)
     else
     {
         token.type = IDENTIFIER;
+        int lt = last_token_type(tokens);
+        if (lt == KEYWORD_TABLE)
+        {
+            token.type = TABLE_NAME;
+        }
         add_token(tokens, token);
     }
 }
@@ -58,9 +63,7 @@ int main()
         return 1;
     }
     char buffer[BUFFER_SIZE];
-    // char last_buffer[BUFFER_SIZE];
     empty_buff(buffer);
-    // empty_buff(last_buffer);
     int current_char;
     int i = 0;
     int line = 0;

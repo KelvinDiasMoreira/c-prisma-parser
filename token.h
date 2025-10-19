@@ -4,6 +4,7 @@
 typedef enum
 {
     KEYWORD_TABLE,
+    TABLE_NAME,
     IDENTIFIER,
     IDENTIFIER_ARG,
     OPENING_BRACE,
@@ -26,7 +27,8 @@ typedef struct TOKENS
 } TOKENS_T;
 
 const char *token_to_string(KTOKENS token);
-char *last_token(const TOKENS_T *ptr_token);
-void init_tokens(TOKENS_T *ptr_token, size_t initial_capacity);
-void add_token(TOKENS_T *ptr_token, TOKEN_T token);
-void free_tokens(TOKENS_T *ptr_token);
+KTOKENS last_token_type(const TOKENS_T *tokens);
+char *last_token(const TOKENS_T *tokens);
+void init_tokens(TOKENS_T *tokens, size_t initial_capacity);
+void add_token(TOKENS_T *tokens, TOKEN_T token);
+void free_tokens(TOKENS_T *tokens);
